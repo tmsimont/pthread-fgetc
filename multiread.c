@@ -8,6 +8,7 @@
 int num_threads = 1;
 char read_file[100];
 struct timespec start, finish;
+clock_t ticks_start, ticks_finish;
 
 #define NUM_CHARS 100000000
 
@@ -30,12 +31,12 @@ int main(int argc, char **argv) {
 		num_threads = atoi(argv[1]);
 		strcpy(read_file, argv[2]);
 
-		// create file
+		// read file, or create file
 		if (access(read_file, F_OK) != -1) {
-			printf("Using existing file\n");
+			// printf("Using existing file\n");
 		}
 		else {
-			printf("Writing file %s\n", read_file);
+			// printf("Writing file %s\n", read_file);
 			FILE *fi = fopen(read_file, "w");
 			if (fi !=NULL)
 				for (i = 0; i < NUM_CHARS; ++i)
@@ -44,7 +45,8 @@ int main(int argc, char **argv) {
 		}
 
 		// launch threads to read file
-		printf("Launching threads\n", read_file);
+		// printf("Launching threads\n", read_file);
+		ticks_start = clock();
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
 		for (i = 0; i < num_threads; ++i)
@@ -56,7 +58,8 @@ int main(int argc, char **argv) {
 		clock_gettime(CLOCK_MONOTONIC, &finish);
 		double elapsed = (finish.tv_sec - start.tv_sec);
 		elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-		printf("Done in %.2f\n", elapsed);
+		ticks_finish = clock();
+		printf("%.5f\t%.5f\n", elapsed, (double)(ticks_finish - ticks_start) / CLOCKS_PER_SEC);
 	}
 	else {
 		printf("Needs two args: num_threads read_file\n");
